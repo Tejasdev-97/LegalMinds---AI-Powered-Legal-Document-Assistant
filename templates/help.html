@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Help — LegalMinds{% endblock %}
+{% block page_title %}<span data-i18n="nav_help">Help & Guide</span>{% endblock %}
+{% block page_subtitle %}Understand operating modes, decision flow, offline features, speech-to-text, and legal safety{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+
+    <!-- Getting Started -->
+    <div class="card mb-4">
+      <div class="card-header"><div class="card-title"><i class="bi bi-rocket-takeoff me-2 text-primary"></i>Getting Started with LegalMinds</div></div>
+      <div class="card-body">
+        <ol style="font-size:14px; line-height:1.8; padding-left:20px; color:var(--color-text);">
+          <li><strong>Upload a Document:</strong> Select a PDF, DOCX, or TXT legal document.</li>
+          <li><strong>Automatic Processing:</strong> The app extracts text and analyzes clauses, dates, amounts, and obligations.</li>
+          <li><strong>Review Key Findings:</strong> Navigate tabs for <em>Summary</em>, <em>Important Clauses</em>, <em>Points to Review</em>, and <em>Dates & Amounts</em>.</li>
+          <li><strong>Multilingual Support:</strong> Select English, Hindi, Kannada, Marathi, Tamil, or Telugu in the header dropdown to switch both local UI text and Gemini AI generated responses.</li>
+          <li><strong>Hands-Free Speech Input:</strong> Click the microphone icon on Q&A inputs to speak your question using browser-native Web Speech API without requiring any API key.</li>
+          <li><strong>Interactive Q&A:</strong> Ask questions grounded strictly in document context in the <em>Ask Questions</em> tab.</li>
+          <li><strong>Compare Agreements:</strong> Contrast two legal documents side-by-side using factual line diffs and Gemini AI comparison.</li>
+          <li><strong>Lawyer Consultation Prep:</strong> Generate a consultation guide or export a clean PDF report.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Operating Modes & Decision Flow -->
+    <div class="card mb-4">
+      <div class="card-header"><div class="card-title"><i class="bi bi-cpu me-2 text-primary"></i>Operating Modes & Decision Logic</div></div>
+      <div class="card-body">
+        <p class="fs-14 text-muted mb-3">LegalMinds uses an intelligent decision router to maximize answer correctness while optimizing Gemini API token usage:</p>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <div class="p-3 rounded" style="background:var(--bg-secondary); border:1.5px solid var(--color-border); height:100%;">
+              <div class="fw-700 fs-14 text-primary mb-1">⚡ Auto (Smart Mode)</div>
+              <div class="fs-12 text-muted">Automatically uses local Python processing for deterministic tasks (clause search, text diffs, date extraction) and Gemini AI for complex natural-language interpretation. Automatically falls back to offline analysis if Gemini is unavailable.</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 rounded" style="background:var(--bg-secondary); border:1.5px solid var(--color-border); height:100%;">
+              <div class="fw-700 fs-14 text-success mb-1">✨ Gemini AI</div>
+              <div class="fs-12 text-muted">Explicitly requests Gemini AI for interpretation. If Gemini is unavailable or quota limit is reached, displays a clear notification badge without pretending the output came from AI.</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 rounded" style="background:var(--bg-secondary); border:1.5px solid var(--color-border); height:100%;">
+              <div class="fw-700 fs-14 text-danger mb-1">🔒 Offline Mode</div>
+              <div class="fs-12 text-muted">Strict guarantee of <strong>ZERO Gemini API calls</strong>. Uses local text extraction and local rule-based Q&A engines. Works completely without internet or API keys.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connection Status Indicators -->
+    <div class="card mb-4">
+      <div class="card-header"><div class="card-title"><i class="bi bi-activity me-2 text-primary"></i>Status Indicators & Offline Banner</div></div>
+      <div class="card-body">
+        <div class="d-flex flex-column gap-2 fs-13">
+          <div class="d-flex align-items-center gap-3">
+            <span class="badge badge-success p-2">🟢 Gemini AI Active</span>
+            <span>API key is active and Gemini AI interpretation is live.</span>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <span class="badge badge-warning p-2">🟠 Gemini Limit Reached</span>
+            <span>Free-tier API quota limit reached. App automatically uses smart local retrieval.</span>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <span class="badge badge-danger p-2">🔴 Gemini Not Configured</span>
+            <span>No API key provided. App operates seamlessly in local offline mode.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Frequently Asked Questions -->
+    <div class="card mb-4">
+      <div class="card-header"><div class="card-title"><i class="bi bi-question-circle me-2 text-primary"></i>Frequently Asked Questions</div></div>
+      <div class="card-body">
+        <div class="accordion accordion-flush" id="faqAccordion">
+          {% set faqs = [
+            ("How does speech-to-text work without API keys?", "LegalMinds uses browser-native Web Speech API (SpeechRecognition) directly in supported browsers. You can dictate questions into input fields without needing any third-party API key."),
+            ("How does multilingual AI generation work?", "When you select a language (e.g., Marathi, Hindi, Kannada, Tamil, Telugu), LegalMinds translates the local UI interface and passes your language selection directly into Gemini prompts so AI-generated summaries and Q&A answers are provided in your chosen language."),
+            ("How does the Q&A engine avoid fabricating legal facts?", "The offline engine strictly extracts verbatim sentences and matching paragraphs directly from the uploaded document text. If information is not in the text, it responds: 'I couldn't find this information in the uploaded document.'"),
+            ("Does page navigation waste Gemini API quota?", "No. Page loads and tab clicks consume ZERO Gemini API requests. Analysis results are stored locally in the database."),
+            ("Is my document data private?", "Documents are processed locally on your server. They are never shared beyond the Gemini API when AI mode is enabled, and zero network calls occur in Offline Mode."),
+            ("What file formats are supported?", "PDF (with page markers), DOCX (Microsoft Word), and plain text TXT files up to 20 MB."),
+            ("Can I use this for professional legal advice?", "No. For informational use only. Not legal advice. Consult a qualified legal professional for specific advice.")
+          ] %}
+          {% for q, a in faqs %}
+          <div class="accordion-item" style="border:none; border-bottom:1px solid var(--color-border);">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq{{ loop.index }}" style="background:transparent; font-size:14px; font-weight:600; color:var(--color-text); box-shadow:none;">
+                {{ q }}
+              </button>
+            </h2>
+            <div id="faq{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body" style="font-size:14px; color:var(--color-text-muted); padding-top:0;">{{ a }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Legal Disclaimer -->
+    <div class="card">
+      <div class="card-header"><div class="card-title"><i class="bi bi-shield-exclamation me-2 text-warning"></i>Legal Disclaimer</div></div>
+      <div class="card-body">
+        <div class="alert alert-warning mb-0">
+          <i class="bi bi-exclamation-triangle"></i>
+          <div style="font-size:13px; line-height:1.6;" data-i18n="disclaimer_full">
+            For informational use only. Not legal advice. Consult a qualified legal professional for specific advice.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,118 @@
+SAMPLE EMPLOYMENT AGREEMENT
+[DEMO DOCUMENT — FOR TESTING PURPOSES ONLY]
+
+This Employment Agreement ("Agreement") is entered into on January 1, 2026, by and between:
+
+Employer: ABC Technologies Pvt. Ltd., a company incorporated under the Companies Act 2013, with its registered office at 42, MG Road, Bengaluru – 560001 ("Company")
+
+Employee: Rahul Sharma, residing at 15, 3rd Cross, Jayanagar, Bengaluru – 560041 ("Employee")
+
+SECTION 1: POSITION AND DUTIES
+
+1.1 The Company hereby employs the Employee as a Software Engineer (the "Position").
+
+1.2 The Employee shall report to the Engineering Manager and shall perform all duties assigned to the Position faithfully and to the best of their ability.
+
+1.3 The Employee agrees to devote their full working time and attention to the Company's business.
+
+SECTION 2: EMPLOYMENT TERM
+
+2.1 This Agreement shall commence on January 12, 2026 and shall continue for a period of two (2) years, unless terminated earlier in accordance with the terms of this Agreement.
+
+2.2 A probationary period of six (6) months shall apply from the date of commencement. During the probationary period, either party may terminate this Agreement with fourteen (14) days' written notice.
+
+SECTION 3: COMPENSATION AND BENEFITS
+
+3.1 Base Salary: The Employee shall receive a monthly salary of Rs. 35,000 (Rupees Thirty-Five Thousand only), payable on the last working day of each month.
+
+3.2 Annual Increment: Subject to satisfactory performance, the Employee shall be eligible for an annual increment of up to 10% of their base salary.
+
+3.3 Allowances: The Employee shall receive a house rent allowance of Rs. 8,000 per month and a transport allowance of Rs. 2,500 per month.
+
+3.4 Benefits: The Employee shall be entitled to Provident Fund contributions as per applicable law, medical insurance coverage of Rs. 3,00,000 per annum, and 24 days of paid annual leave per year.
+
+SECTION 4: PLACE OF WORK
+
+4.1 The Employee's primary place of work shall be the Company's office at 42, MG Road, Bengaluru – 560001.
+
+4.2 The Company reserves the right to transfer the Employee to any other location or department as required by business needs, with thirty (30) days' prior notice.
+
+SECTION 5: WORKING HOURS
+
+5.1 The standard working hours shall be 9:00 AM to 6:00 PM, Monday through Friday, with a one-hour lunch break.
+
+5.2 The Employee may be required to work additional hours as needed without additional compensation.
+
+SECTION 6: CONFIDENTIALITY AND NON-DISCLOSURE
+
+6.1 The Employee acknowledges that during the course of employment, they may have access to confidential information including business strategies, client lists, technical information, financial data, and other proprietary information ("Confidential Information").
+
+6.2 The Employee agrees to maintain strict confidentiality of all Confidential Information and shall not disclose it to any third party during employment or for a period of three (3) years after termination of this Agreement.
+
+6.3 The Employee shall not use Confidential Information for personal gain or for the benefit of any competitor.
+
+6.4 This confidentiality obligation shall survive termination of this Agreement.
+
+SECTION 7: INTELLECTUAL PROPERTY
+
+7.1 All inventions, developments, designs, software, reports, or other intellectual property created by the Employee in the course of employment shall be the sole and exclusive property of the Company.
+
+7.2 The Employee hereby assigns all such intellectual property rights to the Company without additional compensation.
+
+7.3 The Employee shall execute any documents reasonably required by the Company to give effect to this assignment.
+
+SECTION 8: TERMINATION
+
+8.1 By the Company for Cause: The Company may terminate this Agreement immediately without notice if the Employee commits a serious breach of this Agreement, engages in gross misconduct, is found guilty of fraud, dishonesty, or criminal conduct, or fails to perform duties satisfactorily after receiving written warning.
+
+8.2 By the Company without Cause: The Company may terminate this Agreement by providing ninety (90) days' written notice or payment of ninety (90) days' salary in lieu of notice.
+
+8.3 By the Employee: The Employee may resign by providing ninety (90) days' written notice to the Company. During the notice period, the Employee must continue to discharge all duties fully.
+
+8.4 Early Termination Penalty: If the Employee resigns without completing one (1) year of employment, the Employee shall pay a penalty of Rs. 30,000 to the Company as liquidated damages.
+
+SECTION 9: NON-COMPETE
+
+9.1 During the employment period and for a period of twelve (12) months following termination, the Employee shall not directly or indirectly:
+(a) Engage in any business that competes with the Company;
+(b) Solicit any client of the Company;
+(c) Employ or solicit any employee of the Company.
+
+9.2 The geographic scope of this restriction applies to the State of Karnataka.
+
+SECTION 10: DISPUTE RESOLUTION
+
+10.1 Any dispute arising out of or in connection with this Agreement shall be first attempted to be resolved through mutual negotiation between the parties.
+
+10.2 If the dispute cannot be resolved through negotiation within thirty (30) days, it shall be referred to arbitration under the Arbitration and Conciliation Act, 1996.
+
+10.3 The seat of arbitration shall be Bengaluru, Karnataka.
+
+SECTION 11: GOVERNING LAW
+
+11.1 This Agreement shall be governed by and construed in accordance with the laws of India.
+
+11.2 The courts of Bengaluru, Karnataka shall have exclusive jurisdiction over any legal proceedings arising out of this Agreement.
+
+SECTION 12: AMENDMENTS
+
+12.1 This Agreement may be amended only in writing and signed by both parties.
+
+SECTION 13: ENTIRE AGREEMENT
+
+13.1 This Agreement constitutes the entire understanding between the parties regarding the subject matter and supersedes all prior agreements, representations, and undertakings.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement on the date first written above.
+
+For ABC Technologies Pvt. Ltd.:
+Signature: _______________________
+Name: Priya Mehta
+Designation: Head of Human Resources
+Date: January 1, 2026
+
+Employee:
+Signature: _______________________
+Name: Rahul Sharma
+Date: January 1, 2026
+
+[END OF SAMPLE EMPLOYMENT AGREEMENT — FOR TESTING PURPOSES ONLY]

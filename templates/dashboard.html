@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — LegalMinds{% endblock %}
+{% block meta_description %}Your legal document analysis dashboard.{% endblock %}
+{% block page_title %}<span data-i18n="nav_dashboard">Dashboard</span>{% endblock %}
+{% block page_subtitle %}Welcome back{% endblock %}
+
+{% block content %}
+
+<!-- Welcome + Upload CTA -->
+<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
+  <div>
+    <h1 style="font-size:24px; margin-bottom:6px;">Welcome to LegalMinds</h1>
+    <p class="text-muted fs-14">Upload a legal document to get a simple explanation, key clauses, points to review and more.</p>
+  </div>
+  <a href="{{ url_for('upload_page') }}" class="btn btn-primary">
+    <i class="bi bi-plus-lg"></i> <span data-i18n="nav_upload">Upload Document</span>
+  </a>
+</div>
+
+<!-- Recent Documents -->
+{% if documents %}
+  <div class="mb-4">
+    <h6 class="text-muted fw-600 mb-3" style="font-size:12px; text-transform:uppercase; letter-spacing:0.06em;">Recent Documents</h6>
+    <div class="row g-3" id="docCards">
+      {% for doc in documents[:4] %}
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 fade-in" style="cursor:pointer;" onclick="openDocument('{{ doc.id }}')">
+          <div class="card-body">
+            <div class="d-flex align-items-start gap-3 mb-3">
+              <div class="doc-file-icon" style="width:40px;height:40px;font-size:18px;border-radius:10px;">
+                <i class="bi bi-file-earmark-{% if doc.file_type == 'pdf' %}pdf{% elif doc.file_type == 'docx' %}word{% else %}text{% endif %}"></i>
+              </div>
+              <div style="flex:1; min-width:0;">
+                <div class="truncate fw-600 fs-14" title="{{ doc.original_filename }}">{{ doc.original_filename }}</div>
+                <div class="fs-12 text-muted">{{ doc.document_type or 'Unknown type' }}</div>
+              </div>
+            </div>
+            <div class="d-flex align-items-center justify-content-between">
+              <span class="status-pill {% if doc.analysis_status == 'analyzed' %}status-analyzed{% else %}status-pending{% endif %}">
+                {% if doc.analysis_status == 'analyzed' %}
+                  <i class="bi bi-check-circle-fill"></i> Analyzed
+                {% else %}
+                  <i class="bi bi-clock"></i> Pending
+                {% endif %}
+              </span>
+              <span class="fs-11 text-muted">{{ doc.total_pages or 0 }} pages</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Select active document for dashboard stats -->
+  {% set active_doc = documents[0] %}
+  <div class="card mb-4" id="activeDocSection">
+    <div class="card-header">
+      <div class="d-flex align-items-center gap-3">
+        <div class="doc-file-icon">
+          <i class="bi bi-file-earmark-text"></i>
+        </div>
+        <div>
+          <div class="card-title">{{ active_doc.original_filename }}</div>
+          <div class="d-flex gap-2 flex-wrap mt-1">
+            <span class="meta-chip"><i class="bi bi-tag"></i> {{ active_doc.document_type or 'Unknown' }}</span>
+            <span class="meta-chip"><i class="bi bi-file-earmark"></i> {{ active_doc.total_pages or 0 }} pages</span>
+            <span class="meta-chip"><i class="bi bi-clock"></i> {{ active_doc.uploaded_at[:10] if active_doc.uploaded_at else 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="ms-auto d-flex gap-2 flex-wrap">
+          <span class="status-pill {% if active_doc.analysis_status == 'analyzed' %}status-analyzed{% else %}status-pending{% endif %}">
+            {% if active_doc.analysis_status == 'analyzed' %}<i class="bi bi-check-circle-fill"></i> Analyzed{% else %}<i class="bi bi-clock"></i> Pending{% endif %}
+          </span>
+          <a href="{{ url_for('document_page', doc_id=active_doc.id) }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-eye"></i> View Document
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats from active doc - will be populated via JS -->
+    <div class="card-body" id="dashboardStats">
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <div class="stat-card primary">
+            <div class="stat-icon primary"><i class="bi bi-list-check"></i></div>
+            <div class="stat-number" id="statClauses">—</div>
+            <div class="stat-label">Important Clauses</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card accent">
+            <div class="stat-icon accent"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="stat-number" id="statPoints">—</div>
+            <div class="stat-label">Points to Review</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card gold">
+            <div class="stat-icon gold"><i class="bi bi-calendar-event"></i></div>
+            <div class="stat-number" id="statDates">—</div>
+            <div class="stat-label">Important Dates</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card success">
+            <div class="stat-icon success"><i class="bi bi-currency-rupee"></i></div>
+            <div class="stat-number" id="statFinancial">—</div>
+            <div class="stat-label">Financial Terms</div>
+          </div>
+        </div>
+      </div>
+
+      {% if active_doc.analysis_status != 'analyzed' %}
+      <div class="alert alert-info mt-3">
+        <i class="bi bi-info-circle"></i>
+        <div>
+          <strong>Analysis not run yet.</strong>
+          <a href="{{ url_for('document_page', doc_id=active_doc.id) }}" class="alert-link ms-1">Open document to run AI analysis →</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+{% else %}
+  <!-- Empty State -->
+  <div class="card">
+    <div class="card-body">
+      <div class="empty-state">
+        <div class="empty-icon"><i class="bi bi-file-earmark-plus"></i></div>
+        <h4>No documents yet</h4>
+        <p>Upload your first legal document to get started with AI-powered analysis.</p>
+        <a href="{{ url_for('upload_page') }}" class="btn btn-primary mt-3">
+          <i class="bi bi-cloud-upload"></i> Upload Your First Document
+        </a>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="row g-3 mt-2">
+  <div class="col-md-4">
+    <div class="card" style="cursor:pointer;" onclick="location.href='{{ url_for('upload_page') }}'">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon primary"><i class="bi bi-cloud-upload"></i></div>
+        <div>
+          <div class="fw-600 fs-14">Upload Document</div>
+          <div class="fs-12 text-muted">PDF, DOCX, or TXT</div>
+        </div>
+        <i class="bi bi-arrow-right ms-auto text-muted"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card" style="cursor:pointer;" onclick="location.href='{{ url_for('compare_page') }}'">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon accent"><i class="bi bi-layout-split"></i></div>
+        <div>
+          <div class="fw-600 fs-14">Compare Documents</div>
+          <div class="fs-12 text-muted">Find differences between two versions</div>
+        </div>
+        <i class="bi bi-arrow-right ms-auto text-muted"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card" style="cursor:pointer;" onclick="location.href='{{ url_for('saved_documents') }}'">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon gold"><i class="bi bi-archive"></i></div>
+        <div>
+          <div class="fw-600 fs-14">Saved Documents</div>
+          <div class="fs-12 text-muted">View all uploaded documents</div>
+        </div>
+        <i class="bi bi-arrow-right ms-auto text-muted"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+  // Load stats for active document
+  {% if documents %}
+  const activeDocId = '{{ documents[0].id }}';
+  loadDashboardStats(activeDocId);
+  {% endif %}
+
+  function openDocument(docId) {
+    window.location.href = '/document/' + docId;
+  }
+</script>
+{% endblock %}

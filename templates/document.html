@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{% block title %}{{ document.original_filename }} — LegalMinds{% endblock %}
+{% block page_title %}Document Analysis{% endblock %}
+{% block page_subtitle %}{{ document.original_filename }}{% endblock %}
+
+{% block content %}
+
+<!-- Document Meta Bar -->
+<div class="doc-meta-bar slide-up">
+  <div class="doc-meta-info">
+    <div class="doc-file-icon">
+      <i class="bi bi-file-earmark-{% if document.file_type == 'pdf' %}pdf{% elif document.file_type == 'docx' %}word{% else %}text{% endif %}"></i>
+    </div>
+    <div class="doc-meta-details">
+      <h3>{{ document.original_filename }}</h3>
+      <div class="meta-chips">
+        <span class="meta-chip"><i class="bi bi-tag"></i> <span id="docType">{{ document.document_type or 'Detecting...' }}</span></span>
+        <span class="meta-chip"><i class="bi bi-file-earmark"></i> {{ document.total_pages }} pages</span>
+        <span class="meta-chip"><i class="bi bi-calendar"></i> {{ document.uploaded_at[:10] if document.uploaded_at else '' }}</span>
+        <span class="meta-chip"><i class="bi bi-translate"></i> <span id="docLang">English</span></span>
+      </div>
+    </div>
+  </div>
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    <span class="status-pill {% if document.analysis_status == 'analyzed' %}status-analyzed{% else %}status-pending{% endif %}" id="analysisStatusPill">
+      {% if document.analysis_status == 'analyzed' %}
+        <i class="bi bi-check-circle-fill"></i> Analyzed
+      {% else %}
+        <i class="bi bi-clock"></i> Pending
+      {% endif %}
+    </span>
+    {% if document.analysis_status != 'analyzed' %}
+    <button class="btn btn-primary btn-sm" id="runAnalysisBtn" onclick="runAnalysis()">
+      <i class="bi bi-lightning"></i> Run AI Analysis
+    </button>
+    {% endif %}
+    <button class="btn btn-ghost btn-sm" id="listenSummaryBtn" onclick="listenToSummary()" style="display:none;">
+      <i class="bi bi-volume-up"></i> Listen
+    </button>
+    <a href="/api/documents/{{ doc_id }}/report" class="btn btn-ghost btn-sm" id="downloadReportBtn">
+      <i class="bi bi-download"></i> Download PDF
+    </a>
+    <button class="btn btn-ghost btn-sm" onclick="deleteDoc()">
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4" id="statsRow" style="display:none !important;">
+  <div class="col-6 col-md-3">
+    <div class="stat-card primary">
+      <div class="stat-icon primary"><i class="bi bi-list-check"></i></div>
+      <div class="stat-number" id="statClauses">0</div>
+      <div class="stat-label">Important Clauses</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card accent">
+      <div class="stat-icon accent"><i class="bi bi-exclamation-triangle"></i></div>
+      <div class="stat-number" id="statPoints">0</div>
+      <div class="stat-label">Points to Review</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card gold">
+      <div class="stat-icon gold"><i class="bi bi-calendar-event"></i></div>
+      <div class="stat-number" id="statDates">0</div>
+      <div class="stat-label">Important Dates</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card success">
+      <div class="stat-icon success"><i class="bi bi-currency-rupee"></i></div>
+      <div class="stat-number" id="statFinancial">0</div>
+      <div class="stat-label">Financial Terms</div>
+    </div>
+  </div>
+</div>
+
+<!-- Pending Analysis State -->
+<div id="pendingState" {% if document.analysis_status == 'analyzed' %}style="display:none;"{% endif %}>
+  <div class="card">
+    <div class="card-body">
+      <div class="empty-state">
+        <div class="empty-icon"><i class="bi bi-lightning-charge"></i></div>
+        <h4>Ready to Analyze</h4>
+        <p>Click "Run AI Analysis" to extract key information from this document.</p>
+        <button class="btn btn-primary mt-3" onclick="runAnalysis()">
+          <i class="bi bi-lightning"></i> Run AI Analysis
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Analysis Tabs -->
+<div id="analysisSection" {% if document.analysis_status != 'analyzed' %}style="display:none;"{% endif %}>
+
+  <!-- Tab Navigation -->
+  <div class="card">
+    <div class="card-header" style="padding-bottom:0;">
+      <div class="tab-nav" id="tabNav">
+        <button class="tab-btn active" onclick="switchTab('summary', this)">
+          <i class="bi bi-file-text"></i> <span data-i18n="tab_summary">Summary</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('clauses', this)">
+          <i class="bi bi-list-check"></i> <span data-i18n="tab_clauses">Important Clauses</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('review', this)">
+          <i class="bi bi-exclamation-triangle"></i> <span data-i18n="tab_points">Points to Review</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('dates', this)">
+          <i class="bi bi-calendar-event"></i> <span data-i18n="tab_dates">Dates & Amounts</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('ask', this)">
+          <i class="bi bi-chat-dots"></i> <span data-i18n="tab_ask">Ask Questions</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('lawyer', this)">
+          <i class="bi bi-briefcase"></i> <span data-i18n="tab_lawyer">Lawyer Prep</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      <!-- ===== SUMMARY TAB ===== -->
+      <div class="tab-content active" id="tab-summary">
+        <div class="row g-4">
+          <div class="col-lg-8">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h5 style="margin:0; font-family:var(--font-body);">Document Summary</h5>
+              <button class="btn btn-ghost btn-sm" onclick="listenToSummary()">
+                <i class="bi bi-volume-up"></i> Listen
+              </button>
+            </div>
+            <div class="prose mb-4" id="summaryText">
+              <div class="text-muted fs-13">Loading summary...</div>
+            </div>
+
+            <h6 class="fw-600 mb-3" style="font-size:13px; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-text-muted);">Key Takeaways</h6>
+            <div id="keyTakeaways">
+              <div class="text-muted fs-13">Loading key takeaways...</div>
+            </div>
+
+            <div class="divider"></div>
+
+            <h6 class="fw-600 mb-3" style="font-size:13px; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-text-muted);">Parties Involved</h6>
+            <div id="partiesSection" class="d-flex flex-wrap gap-2">
+              <div class="text-muted fs-13">Loading...</div>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <!-- Document Search -->
+            <div class="mb-4">
+              <h6 class="fw-600 mb-2" style="font-size:13px; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-text-muted);">Search in Document</h6>
+              <div class="d-flex gap-2">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search term..." onkeydown="if(event.key==='Enter') searchDocument()">
+                <button class="btn btn-primary btn-sm" onclick="searchDocument()"><i class="bi bi-search"></i></button>
+              </div>
+              <div id="searchResults" class="mt-2"></div>
+            </div>
+
+            <!-- Generate Outputs -->
+            <div>
+              <h6 class="fw-600 mb-2" style="font-size:13px; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-text-muted);">Generate Outputs</h6>
+              <div class="d-grid gap-2">
+                <button class="btn btn-primary" onclick="generateBrief()">
+                  <i class="bi bi-file-earmark-text"></i> Generate Legal Brief
+                </button>
+                <button class="btn btn-outline" onclick="switchTab('lawyer', document.querySelector('.tab-btn:nth-child(6)'))">
+                  <i class="bi bi-briefcase"></i> Questions for Lawyer
+                </button>
+                <a href="/api/documents/{{ doc_id }}/report" class="btn btn-ghost" id="pdfDownloadBtn">
+                  <i class="bi bi-download"></i> Download PDF Report
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== CLAUSES TAB ===== -->
+      <div class="tab-content" id="tab-clauses">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h5 style="margin:0; font-family:var(--font-body);">Important Clauses</h5>
+          <span class="badge badge-primary" id="clauseCount">0 found</span>
+        </div>
+        <div class="row g-3" id="clausesGrid">
+          <div class="col-12 text-muted fs-13">Loading clauses...</div>
+        </div>
+      </div>
+
+      <!-- ===== POINTS TO REVIEW TAB ===== -->
+      <div class="tab-content" id="tab-review">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h5 style="margin:0; font-family:var(--font-body);">Points to Review</h5>
+          <span class="badge badge-accent" id="reviewCount">0 items</span>
+        </div>
+        <div class="alert alert-warning mb-3">
+          <i class="bi bi-info-circle"></i>
+          <div>The following items may deserve careful attention. This does not constitute legal advice. Consider discussing with a qualified legal professional.</div>
+        </div>
+        <div id="reviewPoints">
+          <div class="text-muted fs-13">Loading points to review...</div>
+        </div>
+
+        <!-- Obligations sub-section -->
+        <div class="divider"></div>
+        <h5 style="font-family:var(--font-body); margin-bottom:16px;">Obligations</h5>
+        <div class="row g-4" id="obligationsSection">
+          <div class="text-muted fs-13">Loading obligations...</div>
+        </div>
+      </div>
+
+      <!-- ===== DATES & AMOUNTS TAB ===== -->
+      <div class="tab-content" id="tab-dates">
+        <div class="row g-4">
+          <div class="col-lg-6">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h5 style="margin:0; font-family:var(--font-body);">Important Dates</h5>
+              <span class="badge badge-gold" id="datesCount">0 dates</span>
+            </div>
+            <div class="timeline" id="datesTimeline">
+              <div class="text-muted fs-13">Loading dates...</div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h5 style="margin:0; font-family:var(--font-body);">Financial Terms</h5>
+              <span class="badge badge-success" id="financialCount">0 terms</span>
+            </div>
+            <div id="financialTerms">
+              <div class="text-muted fs-13">Loading financial terms...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ASK QUESTIONS TAB ===== -->
+      <div class="tab-content" id="tab-ask">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h5 style="margin:0; font-family:var(--font-body);">Ask about this Document</h5>
+          <div class="d-flex gap-2">
+            <select class="lang-select" id="qaLangSelect" onchange="loadChatHistory()">
+              <option value="en">English</option>
+              <option value="hi">हिन्दी</option>
+              <option value="kn">ಕನ್ನಡ</option>
+              <option value="mr">मराठी</option>
+              <option value="ta">தமிழ்</option>
+              <option value="te">తెలుగు</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Suggested questions -->
+        <div class="question-chips mb-3" id="suggestedQuestions">
+          <button class="question-chip" onclick="setQuestion(this.textContent)">What is the notice period?</button>
+          <button class="question-chip" onclick="setQuestion(this.textContent)">Can this agreement be terminated early?</button>
+          <button class="question-chip" onclick="setQuestion(this.textContent)">What are my obligations?</button>
+          <button class="question-chip" onclick="setQuestion(this.textContent)">Explain the confidentiality clause.</button>
+          <button class="question-chip" onclick="setQuestion(this.textContent)">What are the payment conditions?</button>
+          <button class="question-chip" onclick="setQuestion(this.textContent)">What happens if I violate the agreement?</button>
+        </div>
+
+        <!-- Chat interface -->
+        <div class="chat-container">
+          <div class="chat-messages" id="chatMessages">
+            <div class="chat-bubble assistant">
+              👋 Hi! I can answer questions about this document. Try one of the suggested questions above, or type your own question below.
+            </div>
+          </div>
+          <div class="chat-input-bar">
+            <button class="btn-voice" id="voiceBtn" onclick="toggleVoiceInput()" title="Ask by voice">
+              <i class="bi bi-mic"></i>
+            </button>
+            <input type="text" class="chat-input" id="chatInput"
+              placeholder="Type your question about this document..."
+              onkeydown="if(event.key==='Enter' && !event.shiftKey) sendQuestion()">
+            <button class="btn btn-primary btn-sm" onclick="sendQuestion()" id="sendBtn">
+              <i class="bi bi-send"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== LAWYER PREP TAB ===== -->
+      <div class="tab-content" id="tab-lawyer">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <h5 style="margin:0; font-family:var(--font-body);">Prepare for a Legal Consultation</h5>
+            <p class="text-muted fs-13 mb-0 mt-1">AI-generated preparation guide — not legal advice.</p>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="generateLawyerPrep()" id="genPrepBtn">
+            <i class="bi bi-lightning"></i> Generate Guide
+          </button>
+        </div>
+
+        <div id="lawyerPrepContent">
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            <div>Click "Generate Guide" to create a personalized consultation preparation checklist based on this document.</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /card-body -->
+  </div><!-- /card -->
+
+</div><!-- /analysisSection -->
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay" style="display:none;">
+  <div class="loading-spinner"></div>
+  <div class="loading-stage">
+    <div class="stage-title" id="loadingTitle">Analyzing document...</div>
+    <div class="stage-step" id="loadingStep">Reading document</div>
+  </div>
+</div>
+
+<!-- Brief Modal -->
+<div class="modal fade" id="briefModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="border-radius:var(--radius-md); border:1px solid var(--color-border);">
+      <div class="modal-header" style="border-color:var(--color-border);">
+        <h5 class="modal-title" style="font-family:var(--font-body);">Legal Brief</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="briefModalBody">
+        <div class="text-center py-4"><div class="loading-spinner mx-auto"></div></div>
+      </div>
+      <div class="modal-footer" style="border-color:var(--color-border);">
+        <a href="/api/documents/{{ doc_id }}/report" class="btn btn-primary">
+          <i class="bi bi-download"></i> Download PDF Report
+        </a>
+        <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/document.js') }}"></script>
+<script>
+  const DOC_ID = '{{ doc_id }}';
+  const DOC_STATUS = '{{ document.analysis_status }}';
+  document.addEventListener('DOMContentLoaded', () => {
+    if (DOC_STATUS === 'analyzed') {
+      loadAnalysis();
+    }
+    loadChatHistory();
+  });
+</script>
+{% endblock %}

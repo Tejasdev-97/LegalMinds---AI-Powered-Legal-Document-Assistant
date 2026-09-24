@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+{% block title %}Settings — LegalMinds{% endblock %}
+{% block page_title %}<span data-i18n="nav_settings">Settings</span>{% endblock %}
+{% block page_subtitle %}API Keys, Preferences & Data Management{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+
+    <!-- ========== GEMINI API KEY ========== -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <div>
+          <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-primary)"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+            Google Gemini API Key
+          </div>
+          <div class="card-subtitle">Powers all AI document analysis, Q&amp;A, comparison, and brief generation.</div>
+        </div>
+        <div id="settingsGeminiStatusBadge" class="ai-status-badge" style="font-size:11px;">
+          <span class="ai-status-dot" id="settingsGeminiDot"></span>
+          <span id="settingsGeminiText">Checking…</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3" style="font-size:13px;">
+          <i class="bi bi-stars"></i>
+          <div>
+            <strong>Get your free Gemini API Key</strong> from Google AI Studio.<br>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" class="fw-600" style="color:var(--color-primary);">
+              → aistudio.google.com/app/apikey ↗
+            </a>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Your Gemini API Key</label>
+          <div style="display:flex;gap:8px;">
+            <input type="password" id="settingsGeminiKey" class="form-control" placeholder="AIzaSy…" autocomplete="off">
+            <button class="btn btn-ghost btn-sm" onclick="togglePasswordVisibility('settingsGeminiKey', this)" title="Show/Hide" style="white-space:nowrap;flex-shrink:0;">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+          <div class="fs-12 text-muted mt-1">Stored in your browser session only — never sent to any third party other than Google.</div>
+        </div>
+
+        <div id="settingsGeminiTestResult" style="font-size:13px;min-height:20px;margin-bottom:10px;"></div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="settingsTestGeminiKey()">
+            <i class="bi bi-check-circle"></i> Test Key
+          </button>
+          <button class="btn btn-primary" onclick="settingsSaveKeys()">
+            <i class="bi bi-floppy"></i> Save for This Session
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="settingsClearKeys()">
+            <i class="bi bi-x-circle"></i> Clear Custom Key
+          </button>
+        </div>
+
+        <div class="divider" style="margin:16px 0;"></div>
+        <div style="font-size:12px;color:var(--color-text-muted);">
+          <strong>Alternatively</strong>, set it permanently in your <code style="background:var(--bg-secondary);padding:2px 5px;border-radius:4px;">.env</code> file:
+          <pre style="background:var(--bg-secondary);padding:10px 12px;border-radius:8px;font-size:12px;margin-top:6px;margin-bottom:0;overflow-x:auto;">GEMINI_API_KEY=AIzaSy_your_key_here</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== TRANSLATION API KEY ========== -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <div>
+          <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+            <i class="bi bi-translate" style="color:var(--color-gold);font-size:16px;"></i>
+            Translation API Key
+          </div>
+          <div class="card-subtitle">Used for translating AI explanations into regional languages.</div>
+        </div>
+        <div id="settingsTranslateStatus" class="ai-status-badge" style="font-size:11px;">
+          <span class="ai-status-dot" id="settingsTranslateDot"></span>
+          <span id="settingsTranslateText">Not Configured</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3" style="font-size:13px;">
+          <i class="bi bi-globe"></i>
+          <div>
+            <strong>Google Cloud Translation API Key</strong> (optional) — improves translation accuracy.<br>
+            <a href="https://cloud.google.com/translate/docs/setup" target="_blank" rel="noopener" style="color:var(--color-primary);">
+              → cloud.google.com/translate ↗
+            </a>
+            <br><span style="color:var(--color-text-muted);">Without this key, the app uses <strong>deep-translator</strong> (free, no key required).</span>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Google Cloud Translate API Key <span class="badge badge-muted" style="font-size:10px;">Optional</span></label>
+          <div style="display:flex;gap:8px;">
+            <input type="password" id="settingsTranslateKey" class="form-control" placeholder="Your Cloud Translation API key…" autocomplete="off">
+            <button class="btn btn-ghost btn-sm" onclick="togglePasswordVisibility('settingsTranslateKey', this)" style="flex-shrink:0;">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-sm" onclick="settingsSaveKeys()">
+          <i class="bi bi-floppy"></i> Save for This Session
+        </button>
+
+        <div class="divider" style="margin:16px 0;"></div>
+        <div style="font-size:12px;color:var(--color-text-muted);">
+          Permanent setup via <code style="background:var(--bg-secondary);padding:2px 5px;border-radius:4px;">.env</code>:
+          <pre style="background:var(--bg-secondary);padding:10px 12px;border-radius:8px;font-size:12px;margin-top:6px;margin-bottom:0;overflow-x:auto;">TRANSLATE_API_KEY=your_cloud_translate_key_here</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== TTS API KEY ========== -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <div>
+          <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+            <i class="bi bi-mic" style="color:var(--color-accent);font-size:16px;"></i>
+            Text-to-Speech (TTS) API Key
+          </div>
+          <div class="card-subtitle">Used for high-quality audio readout of AI explanations.</div>
+        </div>
+        <div id="settingsTTSStatus" class="ai-status-badge" style="font-size:11px;">
+          <span class="ai-status-dot" id="settingsTTSDot"></span>
+          <span id="settingsTTSText">Not Configured</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info mb-3" style="font-size:13px;">
+          <i class="bi bi-volume-up"></i>
+          <div>
+            <strong>Google Cloud Text-to-Speech API Key</strong> (optional) — for natural-sounding audio.<br>
+            <a href="https://cloud.google.com/text-to-speech/docs/quickstart-client-libraries" target="_blank" rel="noopener" style="color:var(--color-primary);">
+              → cloud.google.com/text-to-speech ↗
+            </a>
+            <br><span style="color:var(--color-text-muted);">Without this, the browser's built-in Speech Synthesis is used automatically.</span>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Google Cloud TTS API Key <span class="badge badge-muted" style="font-size:10px;">Optional</span></label>
+          <div style="display:flex;gap:8px;">
+            <input type="password" id="settingsTTSKey" class="form-control" placeholder="Your Cloud TTS API key…" autocomplete="off">
+            <button class="btn btn-ghost btn-sm" onclick="togglePasswordVisibility('settingsTTSKey', this)" style="flex-shrink:0;">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div>
+            <div class="fw-600 fs-14">Enable Text-to-Speech</div>
+            <div class="fs-12 text-muted">Allow 🔊 Listen buttons to read AI summaries aloud.</div>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="settingTTS" checked onchange="saveSetting('tts', this.checked)">
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-sm" onclick="settingsSaveKeys()">
+          <i class="bi bi-floppy"></i> Save for This Session
+        </button>
+
+        <div class="divider" style="margin:16px 0;"></div>
+        <div style="font-size:12px;color:var(--color-text-muted);">
+          Permanent setup via <code style="background:var(--bg-secondary);padding:2px 5px;border-radius:4px;">.env</code>:
+          <pre style="background:var(--bg-secondary);padding:10px 12px;border-radius:8px;font-size:12px;margin-top:6px;margin-bottom:0;overflow-x:auto;">TTS_API_KEY=your_cloud_tts_key_here</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== LANGUAGE ========== -->
+    <div class="card mb-4">
+      <div class="card-header"><div class="card-title">Language &amp; Display</div></div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label">Preferred Language for AI Explanations</label>
+          <select class="form-control" id="settingLang" onchange="saveSetting('language', this.value)">
+            <option value="en">🌐 English</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+            <option value="kn">ಕನ್ನಡ (Kannada)</option>
+            <option value="mr">मराठी (Marathi)</option>
+            <option value="ta">தமிழ் (Tamil)</option>
+            <option value="te">తెలుగు (Telugu)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== DATA MANAGEMENT ========== -->
+    <div class="card mb-4">
+      <div class="card-header"><div class="card-title text-danger">Data Management</div></div>
+      <div class="card-body">
+        <p class="fs-14 text-muted mb-3">Delete all saved documents and analysis history from this device. This action cannot be undone.</p>
+        <button class="btn btn-danger" onclick="clearAllDocuments()">
+          <i class="bi bi-trash"></i> Clear All Documents
+        </button>
+      </div>
+    </div>
+
+    <!-- ========== DISCLAIMER ========== -->
+    <div class="card mb-4">
+      <div class="card-header"><div class="card-title">Legal Disclaimer</div></div>
+      <div class="card-body">
+        <div class="alert alert-warning mb-0">
+          <i class="bi bi-exclamation-triangle"></i>
+          <div>
+            <strong>Important:</strong> Legal AI Assistant provides general legal information and document assistance. It does not provide professional legal advice and does not replace a qualified lawyer. For advice specific to your situation, always consult a licensed legal professional.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ---- Load saved settings ----
+const settings = JSON.parse(localStorage.getItem('legalai_settings') || '{}');
+if (settings.language) document.getElementById('settingLang').value = settings.language;
+if (settings.tts !== undefined) document.getElementById('settingTTS').checked = settings.tts;
+
+function saveSetting(key, value) {
+  const s = JSON.parse(localStorage.getItem('legalai_settings') || '{}');
+  s[key] = value;
+  localStorage.setItem('legalai_settings', JSON.stringify(s));
+  showToast('success', 'Setting saved.');
+}
+
+// ---- Show/Hide password toggle ----
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.innerHTML = '<i class="bi bi-eye-slash"></i>';
+  } else {
+    input.type = 'password';
+    btn.innerHTML = '<i class="bi bi-eye"></i>';
+  }
+}
+
+// ---- Load key status on page ----
+async function loadSettingsStatus() {
+  try {
+    const r = await fetch('/api/key-status');
+    const d = await r.json();
+
+    // Gemini badge
+    const dot = document.getElementById('settingsGeminiDot');
+    const txt = document.getElementById('settingsGeminiText');
+    if (d.status === 'active') {
+      dot.className = 'ai-status-dot green';
+      txt.textContent = d.message || 'Active';
+      txt.style.color = 'var(--color-success)';
+    } else {
+      dot.className = 'ai-status-dot red';
+      txt.textContent = d.message || 'Not Configured';
+      txt.style.color = 'var(--color-danger)';
+    }
+
+    // Translate badge
+    const tDot = document.getElementById('settingsTranslateDot');
+    const tTxt = document.getElementById('settingsTranslateText');
+    if (d.translate_key_configured) {
+      tDot.className = 'ai-status-dot green'; tTxt.textContent = 'Configured';
+      tTxt.style.color = 'var(--color-success)';
+    } else {
+      tDot.className = 'ai-status-dot'; tTxt.textContent = 'Using Free Fallback';
+      tTxt.style.color = 'var(--color-text-muted)';
+    }
+
+    // TTS badge
+    const sDot = document.getElementById('settingsTTSDot');
+    const sTxt = document.getElementById('settingsTTSText');
+    if (d.tts_key_configured) {
+      sDot.className = 'ai-status-dot green'; sTxt.textContent = 'Configured';
+      sTxt.style.color = 'var(--color-success)';
+    } else {
+      sDot.className = 'ai-status-dot'; sTxt.textContent = 'Browser TTS';
+      sTxt.style.color = 'var(--color-text-muted)';
+    }
+  } catch (e) {
+    console.warn('Could not load key status', e);
+  }
+}
+loadSettingsStatus();
+
+// ---- Test Gemini key ----
+async function settingsTestGeminiKey() {
+  const key = document.getElementById('settingsGeminiKey').value.trim();
+  const el = document.getElementById('settingsGeminiTestResult');
+  if (!key) { el.innerHTML = '<span style="color:var(--color-danger);">Please enter an API key first.</span>'; return; }
+  el.innerHTML = '<span style="color:var(--color-text-muted);">Testing key with Gemini API…</span>';
+  try {
+    const r = await fetch('/api/test-gemini-key', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: key }),
+    });
+    const d = await r.json();
+    if (d.valid) {
+      el.innerHTML = `<span style="color:var(--color-success);">✓ ${escapeHtml(d.message)} — Key is valid and working!</span>`;
+    } else {
+      el.innerHTML = `<span style="color:var(--color-danger);">✗ ${escapeHtml(d.message)}</span>`;
+    }
+  } catch {
+    el.innerHTML = '<span style="color:var(--color-danger);">Could not reach server to test.</span>';
+  }
+}
+
+// ---- Save all keys ----
+async function settingsSaveKeys() {
+  const geminiKey   = document.getElementById('settingsGeminiKey').value.trim();
+  const translateKey = document.getElementById('settingsTranslateKey').value.trim();
+  const ttsKey      = document.getElementById('settingsTTSKey').value.trim();
+
+  if (!geminiKey && !translateKey && !ttsKey) {
+    showToast('warning', 'Please enter at least one API key to save.');
+    return;
+  }
+
+  const payload = {};
+  if (geminiKey)    payload.gemini_api_key    = geminiKey;
+  if (translateKey) payload.translate_api_key = translateKey;
+  if (ttsKey)       payload.tts_api_key       = ttsKey;
+
+  try {
+    const r = await fetch('/api/set-keys', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const d = await r.json();
+    const gs = d.gemini_status || {};
+    const el = document.getElementById('settingsGeminiTestResult');
+
+    if (gs.valid) {
+      el.innerHTML = `<span style="color:var(--color-success);">✓ ${escapeHtml(gs.message)} — Keys saved for this session.</span>`;
+      updateAiStatusBadge({ status: 'active', message: gs.message });
+      showToast('success', 'API keys saved successfully!');
+    } else if (geminiKey) {
+      el.innerHTML = `<span style="color:var(--color-danger);">Key saved but Gemini test failed: ${escapeHtml(gs.message)}</span>`;
+    } else {
+      showToast('success', 'API keys saved successfully!');
+    }
+    loadSettingsStatus();
+  } catch {
+    showToast('error', 'Error saving keys. Please try again.');
+  }
+}
+
+// ---- Clear all custom keys ----
+async function settingsClearKeys() {
+  if (!confirm('Clear all custom API keys? The app will use .env settings or offline mode.')) return;
+  try {
+    const r = await fetch('/api/clear-keys', { method: 'POST' });
+    const d = await r.json();
+    document.getElementById('settingsGeminiKey').value = '';
+    document.getElementById('settingsTranslateKey').value = '';
+    document.getElementById('settingsTTSKey').value = '';
+    document.getElementById('settingsGeminiTestResult').innerHTML = '';
+    const gs = d.gemini_status || {};
+    updateAiStatusBadge({ status: gs.valid ? 'active' : 'offline', message: gs.message || 'Offline Demo Mode' });
+    loadSettingsStatus();
+    showToast('info', 'All custom API keys cleared.');
+  } catch {
+    showToast('error', 'Error clearing keys.');
+  }
+}
+
+// ---- Clear documents ----
+function clearAllDocuments() {
+  if (!confirm('This will delete ALL documents and analysis data. Are you sure?')) return;
+  fetch('/api/documents').then(r => r.json()).then(docs => {
+    Promise.all(docs.map(d => fetch(`/api/documents/${d.id}`, { method: 'DELETE' })))
+      .then(() => {
+        showToast('success', 'All documents cleared.');
+        setTimeout(() => location.href = '/', 1200);
+      });
+  });
+}
+</script>
+{% endblock %}

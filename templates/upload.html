@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Document — LegalMinds{% endblock %}
+{% block page_title %}<span data-i18n="nav_upload">Upload Document</span>{% endblock %}
+{% block page_subtitle %}PDF, DOCX, or TXT files up to 20 MB{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Upload a Legal Document</div>
+          <div class="card-subtitle">Supported formats: PDF, DOCX, TXT · Max 20 MB</div>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <!-- Upload Zone -->
+        <div class="upload-zone" id="uploadZone">
+          <div class="upload-icon">
+            <i class="bi bi-cloud-upload"></i>
+          </div>
+          <h3>Drop your document here</h3>
+          <p>Or click to browse your files</p>
+          <button class="btn btn-primary" type="button" onclick="document.getElementById('fileInput').click()">
+            <i class="bi bi-folder2-open"></i> Choose File
+          </button>
+          <input type="file" id="fileInput" accept=".pdf,.docx,.txt" style="display:none;">
+        </div>
+
+        <!-- File Preview (hidden initially) -->
+        <div id="filePreview" style="display:none;" class="mt-3">
+          <div class="d-flex align-items-center gap-3 p-3 bg-secondary rounded">
+            <div class="stat-icon primary" id="fileTypeIcon"><i class="bi bi-file-earmark-pdf"></i></div>
+            <div style="flex:1; min-width:0;">
+              <div class="fw-600 fs-14 truncate" id="previewFileName">filename.pdf</div>
+              <div class="fs-12 text-muted" id="previewFileSize">0 KB</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="clearFile()">
+              <i class="bi bi-x"></i> Remove
+            </button>
+          </div>
+        </div>
+
+        <!-- Error message -->
+        <div id="uploadError" style="display:none;" class="mt-3"></div>
+
+        <!-- Upload progress -->
+        <div id="uploadProgress" style="display:none;" class="mt-4">
+          <div class="mb-2 d-flex align-items-center justify-content-between">
+            <span class="fs-13 fw-600" id="progressLabel">Uploading...</span>
+            <span class="fs-12 text-muted" id="progressPct">0%</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progressFill" style="width:0%;"></div>
+          </div>
+          <div class="fs-12 text-muted mt-2" id="progressStage">Reading document...</div>
+        </div>
+
+      </div>
+      <div class="card-footer d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2 fs-12 text-muted">
+          <i class="bi bi-shield-check text-success"></i>
+          Files are processed locally and not shared with third parties.
+        </div>
+        <button class="btn btn-primary" id="uploadBtn" onclick="startUpload()" disabled>
+          <i class="bi bi-cloud-upload"></i> Upload & Analyze
+        </button>
+      </div>
+    </div>
+
+    <!-- Info cards -->
+    <div class="row g-3 mt-2">
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex align-items-center gap-3">
+              <div class="feature-icon" style="background: var(--color-primary-light); width:36px; height:36px; border-radius:8px; font-size:16px;">
+                <i class="bi bi-filetype-pdf" style="color:var(--color-primary);"></i>
+              </div>
+              <div>
+                <div class="fw-600 fs-13">PDF</div>
+                <div class="fs-12 text-muted">Best support</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex align-items-center gap-3">
+              <div class="feature-icon" style="background: #E8F4FD; width:36px; height:36px; border-radius:8px; font-size:16px;">
+                <i class="bi bi-filetype-docx" style="color:#1B5EAB;"></i>
+              </div>
+              <div>
+                <div class="fw-600 fs-13">DOCX</div>
+                <div class="fs-12 text-muted">Word documents</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex align-items-center gap-3">
+              <div class="feature-icon" style="background: var(--bg-secondary); width:36px; height:36px; border-radius:8px; font-size:16px;">
+                <i class="bi bi-filetype-txt" style="color:var(--color-text-muted);"></i>
+              </div>
+              <div>
+                <div class="fw-600 fs-13">TXT</div>
+                <div class="fs-12 text-muted">Plain text</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sample Documents Section -->
+    <div class="card mt-4">
+      <div class="card-header">
+        <div class="card-title">Try a Sample Document</div>
+        <div class="card-subtitle">Test the application with our demo documents</div>
+      </div>
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-4">
+            <button class="btn btn-ghost btn-sm w-100 text-start" onclick="useSample('employment')">
+              <i class="bi bi-briefcase text-primary me-2"></i> Employment Agreement
+            </button>
+          </div>
+          <div class="col-md-4">
+            <button class="btn btn-ghost btn-sm w-100 text-start" onclick="useSample('rental')">
+              <i class="bi bi-house text-accent me-2"></i> Rental Agreement
+            </button>
+          </div>
+          <div class="col-md-4">
+            <button class="btn btn-ghost btn-sm w-100 text-start" onclick="useSample('service')">
+              <i class="bi bi-file-earmark-text text-gold me-2"></i> Service Agreement
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay" style="display:none;">
+  <div class="loading-spinner"></div>
+  <div class="loading-stage">
+    <div class="stage-title">Analyzing your document...</div>
+    <div class="stage-step" id="loadingStep">Reading document</div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script>
+const fileInput = document.getElementById('fileInput');
+const uploadZone = document.getElementById('uploadZone');
+const uploadBtn = document.getElementById('uploadBtn');
+const filePreview = document.getElementById('filePreview');
+let selectedFile = null;
+
+// Drag & drop
+uploadZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  uploadZone.classList.add('drag-over');
+});
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFileSelected(file);
+});
+uploadZone.addEventListener('click', (e) => {
+  if (e.target !== fileInput) fileInput.click();
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) handleFileSelected(fileInput.files[0]);
+});
+
+function handleFileSelected(file) {
+  const allowed = ['pdf', 'docx', 'txt'];
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!allowed.includes(ext)) {
+    showError('Please upload a PDF, DOCX, or TXT file.');
+    return;
+  }
+  if (file.size > 20 * 1024 * 1024) {
+    showError('File is too large. Maximum size is 20 MB.');
+    return;
+  }
+  selectedFile = file;
+  document.getElementById('previewFileName').textContent = file.name;
+  document.getElementById('previewFileSize').textContent = formatBytes(file.size);
+  const icons = { pdf: 'bi-filetype-pdf', docx: 'bi-filetype-docx', txt: 'bi-filetype-txt' };
+  document.getElementById('fileTypeIcon').innerHTML = `<i class="bi ${icons[ext] || 'bi-file-earmark'}"></i>`;
+  filePreview.style.display = 'block';
+  uploadBtn.disabled = false;
+  document.getElementById('uploadError').style.display = 'none';
+}
+
+function clearFile() {
+  selectedFile = null;
+  fileInput.value = '';
+  filePreview.style.display = 'none';
+  uploadBtn.disabled = true;
+}
+
+function showError(msg) {
+  const el = document.getElementById('uploadError');
+  el.innerHTML = `<div class="alert alert-danger"><i class="bi bi-exclamation-circle"></i> ${msg}</div>`;
+  el.style.display = 'block';
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+const loadingSteps = [
+  'Reading document...',
+  'Understanding content...',
+  'Identifying important clauses...',
+  'Extracting dates and financial terms...',
+  'Preparing summary...',
+  'Finalizing analysis...'
+];
+let stepIndex = 0;
+let stepInterval;
+
+function startUpload() {
+  if (!selectedFile) return;
+
+  uploadBtn.disabled = true;
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  stepIndex = 0;
+
+  stepInterval = setInterval(() => {
+    stepIndex = (stepIndex + 1) % loadingSteps.length;
+    document.getElementById('loadingStep').textContent = loadingSteps[stepIndex];
+  }, 1800);
+
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+
+  fetch('/api/documents/upload', {
+    method: 'POST',
+    body: formData,
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.error) {
+      clearInterval(stepInterval);
+      document.getElementById('loadingOverlay').style.display = 'none';
+      showError(data.error);
+      uploadBtn.disabled = false;
+      return;
+    }
+    // Trigger analysis
+    return fetch(`/api/documents/${data.id}/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    })
+      .then(r => r.json())
+      .then(aData => {
+        clearInterval(stepInterval);
+        document.getElementById('loadingOverlay').style.display = 'none';
+        window.location.href = `/document/${data.id}`;
+      });
+  })
+  .catch(err => {
+    clearInterval(stepInterval);
+    document.getElementById('loadingOverlay').style.display = 'none';
+    showError('Upload failed. Please check your connection and try again.');
+    uploadBtn.disabled = false;
+  });
+}
+
+function useSample(type) {
+  showToast('info', 'Please upload the sample documents from the sample_documents/ folder.');
+}
+</script>
+{% endblock %}
