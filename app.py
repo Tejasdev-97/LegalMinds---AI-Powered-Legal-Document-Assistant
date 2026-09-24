@@ -56,14 +56,16 @@ DB_PATH = DB_FOLDER / "legal_ai.db"
 # ---------------------------------------------------------------------------
 
 def get_db():
-    """Get a database connection."""
+    """Get a database connection. Ensures DB_FOLDER exists first."""
+    DB_FOLDER.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
-    """Initialize the SQLite database schema."""
+    """Initialize the SQLite database schema. Safe and idempotent for repeated calls."""
+    DB_FOLDER.mkdir(parents=True, exist_ok=True)
     conn = get_db()
     cursor = conn.cursor()
 
@@ -132,7 +134,12 @@ def init_db():
 
     conn.commit()
     conn.close()
-    logger.info("Database initialized.")
+    logger.info("Database initialized successfully.")
+
+
+# Execute database initialization immediately upon module import.
+# Guarantees WSGI production servers (e.g. gunicorn app:app) create and migrate tables before serving requests.
+init_db()
 
 
 # ---------------------------------------------------------------------------
