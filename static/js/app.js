@@ -226,11 +226,7 @@ function updateAiStatusBadge(data) {
       dot.classList.add('red');
       text.textContent = 'Offline Mode — Gemini Disabled';
       text.style.color = 'var(--color-danger)';
-      if (offlineBanner) {
-        offlineBanner.style.display = 'flex';
-        const bannerTextEl = document.getElementById('offlineBannerText');
-        if (bannerTextEl) bannerTextEl.textContent = '🔒 OFFLINE MODE — Gemini Disabled';
-      }
+      if (offlineBanner) offlineBanner.style.display = 'none';
     } else if (data.status === 'active') {
       dot.classList.add('green');
       text.textContent = data.message || 'Gemini AI Active';
