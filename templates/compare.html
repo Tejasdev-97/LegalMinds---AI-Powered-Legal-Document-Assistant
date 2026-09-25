@@ -107,7 +107,7 @@
       <div class="card-body text-center py-5">
         <div class="loading-spinner mx-auto mb-4"></div>
         <div class="fw-600 fs-15 mb-2">Comparing documents...</div>
-        <div class="text-muted fs-13">AI is analyzing both documents and finding differences.</div>
+        <div class="text-muted fs-13">Analyzing both documents and finding differences.</div>
       </div>
     </div>
 
@@ -116,32 +116,35 @@
 
       <!-- Header card -->
       <div class="card mb-3" id="comparisonHeader">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
             <div class="card-title">Comparison Results</div>
             <div id="compDocsLabel" class="card-subtitle"></div>
           </div>
+          <button class="btn btn-sm btn-outline-primary" id="btnExportCompPdf" onclick="exportComparisonPdf()">
+            <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF Report
+          </button>
         </div>
         <div class="card-body">
           <div class="prose" id="compSummary"></div>
         </div>
       </div>
 
-      <!-- Differences table -->
+      <!-- Differences table — horizontal scroll only on this container -->
       <div class="card mb-3">
         <div class="card-header">
           <div class="card-title">Key Differences</div>
           <span class="badge badge-accent" id="diffCount">0 differences</span>
         </div>
         <div class="card-body p-0">
-          <div style="overflow-x:auto;">
+          <div class="comp-table-scroll">
             <table class="comparison-table" id="diffTable">
               <thead>
                 <tr>
-                  <th>Category</th>
-                  <th id="colHeaderA">Document A</th>
-                  <th id="colHeaderB">Document B</th>
-                  <th>Type</th>
+                  <th style="min-width:140px;">Category</th>
+                  <th id="colHeaderA" style="min-width:180px;">Document A</th>
+                  <th id="colHeaderB" style="min-width:180px;">Document B</th>
+                  <th style="min-width:100px;">Type</th>
                 </tr>
               </thead>
               <tbody id="diffTableBody">
@@ -151,25 +154,25 @@
         </div>
       </div>
 
-      <!-- Added / Removed -->
+      <!-- Present only in A / B — correct labels set by JS -->
       <div class="row g-3">
         <div class="col-md-6">
           <div class="card">
             <div class="card-header">
-              <div class="card-title text-success">Present only in Document A</div>
+              <div class="card-title" id="onlyInDocATitle">Present only in Document A</div>
             </div>
-            <div class="card-body">
-              <div id="addedInB" class="text-muted fs-13">None</div>
+            <div class="card-body comp-only-body">
+              <div id="onlyInDocA" class="text-muted fs-13">None</div>
             </div>
           </div>
         </div>
         <div class="col-md-6">
           <div class="card">
             <div class="card-header">
-              <div class="card-title text-danger">Present only in Document B</div>
+              <div class="card-title" id="onlyInDocBTitle">Present only in Document B</div>
             </div>
-            <div class="card-body">
-              <div id="removedInB" class="text-muted fs-13">None</div>
+            <div class="card-body comp-only-body">
+              <div id="onlyInDocB" class="text-muted fs-13">None</div>
             </div>
           </div>
         </div>

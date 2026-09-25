@@ -517,6 +517,10 @@ a:hover { color: var(--color-primary-hover); }
 .badge-success { background: #D1FAE5; color: var(--color-success); }
 .badge-danger { background: #FDE8E6; color: var(--color-danger); }
 .badge-muted { background: var(--bg-secondary); color: var(--color-text-muted); }
+.badge-secondary { background: #E5E7EB; color: #111827; border: 1px solid #D1D5DB; }
+.badge-warning { background: #FEF3C7; color: #92400E; }
+/* Factual Diff badge — always dark readable text */
+.badge-factual-diff { background: #E0E7FF; color: #1E3A8A; border: 1px solid #C7D2FE; font-size: 10px; }
 
 /* =========================================================
    COMPONENTS — Tabs
@@ -1076,31 +1080,74 @@ select.form-control {
 }
 
 /* =========================================================
-   COMPARISON TABLE
+   COMPARISON TABLE — isolated horizontal scroll only on table
    ========================================================= */
+/* The scroll wrapper around the comparison table — ONLY this scrolls horizontally */
+.comp-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
 .comparison-table {
   width: 100%;
+  min-width: 560px;  /* minimum before scrolling starts */
   border-collapse: collapse;
   font-size: 14px;
+  table-layout: fixed;
 }
 
 .comparison-table th {
   background: var(--color-primary);
   color: white;
-  padding: 12px 16px;
+  padding: 10px 12px;
   text-align: left;
   font-weight: 600;
   font-size: 13px;
+  word-break: break-word;
 }
 
 .comparison-table th:first-child { border-radius: var(--radius-sm) 0 0 0; }
 .comparison-table th:last-child { border-radius: 0 var(--radius-sm) 0 0; }
 
 .comparison-table td {
-  padding: 12px 16px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--color-border);
   vertical-align: top;
   color: var(--color-text);
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* cells that contain long clause text must wrap, not overflow */
+.comp-cell-wrap {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 280px;
+}
+
+/* Items in 'only in doc A/B' section */
+.comp-only-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  margin-bottom: 8px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.comp-only-body {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Offline Document Comparison badge — ensure contrast */
+.comp-mode-badge {
+  font-size: 11px !important;
+  font-weight: 700 !important;
 }
 
 .comparison-table tr:nth-child(even) td { background: var(--bg-secondary); }
@@ -1109,6 +1156,41 @@ select.form-control {
 .diff-changed { color: var(--color-accent); font-weight: 600; }
 .diff-added { color: var(--color-success); font-weight: 600; }
 .diff-removed { color: var(--color-danger); font-weight: 600; }
+
+/* Responsive: at tablet/mobile, stack comparison columns */
+@media (max-width: 768px) {
+  .comparison-table {
+    display: block;
+  }
+  .comparison-table thead { display: none; }
+  .comparison-table tbody { display: block; }
+  .comparison-table tr {
+    display: block;
+    margin-bottom: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .comparison-table td {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 8px 12px;
+    max-width: 100%;
+  }
+  .comparison-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--color-text-muted);
+    min-width: 80px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding-top: 2px;
+  }
+  .comp-cell-wrap { max-width: 100%; }
+}
 
 /* =========================================================
    ALERTS / TOASTS
@@ -1642,6 +1724,33 @@ select.form-control {
   background-color: #2A2A2A !important;
   color: #FFFFFF !important;
   border: 1px solid #383838 !important;
+}
+
+/* Factual Diff badge remains readable in dark mode */
+[data-theme="dark"] .badge-factual-diff {
+  background-color: #1E3A5F !important;
+  color: #93C5FD !important;
+  border-color: #1D4ED8 !important;
+}
+
+/* ⚫ Offline Document Comparison badge — strong contrast in dark mode */
+[data-theme="dark"] .comp-mode-badge {
+  color: #FFFFFF !important;
+  text-shadow: none;
+}
+
+[data-theme="dark"] .badge-warning {
+  background-color: #451A03 !important;
+  color: #FDE68A !important;
+}
+
+/* Comparison table dark mode */
+[data-theme="dark"] .comp-only-item {
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .comp-table-scroll {
+  background: #1A1A1A;
 }
 
 [data-theme="dark"] .tab-btn {

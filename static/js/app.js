@@ -220,7 +220,18 @@ function updateAiStatusBadge(data) {
 
   if (dot && text) {
     dot.className = 'ai-status-dot';
-    if (data.status === 'active' && currentMode !== 'offline') {
+
+    // Offline mode takes priority — never show Gemini Active when explicitly offline
+    if (currentMode === 'offline') {
+      dot.classList.add('red');
+      text.textContent = 'Offline Mode — Gemini Disabled';
+      text.style.color = 'var(--color-danger)';
+      if (offlineBanner) {
+        offlineBanner.style.display = 'flex';
+        const bannerTextEl = document.getElementById('offlineBannerText');
+        if (bannerTextEl) bannerTextEl.textContent = '🔒 OFFLINE MODE — Gemini Disabled';
+      }
+    } else if (data.status === 'active') {
       dot.classList.add('green');
       text.textContent = data.message || 'Gemini AI Active';
       text.style.color = 'var(--color-success)';
@@ -231,17 +242,17 @@ function updateAiStatusBadge(data) {
       text.style.color = 'var(--color-gold)';
       if (offlineBanner) {
         offlineBanner.style.display = 'flex';
-        document.getElementById('offlineBannerText').textContent = `🟠 OFFLINE — ${data.message || 'Gemini Limit Reached'}`;
+        const bannerTextEl = document.getElementById('offlineBannerText');
+        if (bannerTextEl) bannerTextEl.textContent = `🟠 OFFLINE — ${data.message || 'Gemini Limit Reached'}`;
       }
     } else {
       dot.classList.add('red');
-      text.textContent = data.message || (currentMode === 'offline' ? 'Offline Mode Active' : 'Gemini Not Configured');
+      text.textContent = data.message || 'Gemini Not Configured';
       text.style.color = 'var(--color-danger)';
       if (offlineBanner) {
         offlineBanner.style.display = 'flex';
-        document.getElementById('offlineBannerText').textContent = currentMode === 'offline'
-          ? '🔒 OFFLINE MODE — Gemini disabled'
-          : `🔴 OFFLINE MODE — ${data.message || 'Gemini unavailable'}`;
+        const bannerTextEl = document.getElementById('offlineBannerText');
+        if (bannerTextEl) bannerTextEl.textContent = `🔴 OFFLINE — ${data.message || 'Gemini unavailable'}`;
       }
     }
   }

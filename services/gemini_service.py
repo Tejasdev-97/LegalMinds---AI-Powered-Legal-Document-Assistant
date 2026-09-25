@@ -840,14 +840,7 @@ def _extract_page_from_context(doc_text: str, char_pos: int) -> int | None:
 def _smart_offline_qa(document_text: str, question: str, document_type: str = "") -> dict:
     """
     Zero-fabrication rule-based Q&A engine.
-
-    Pipeline:
-    1. Tokenize question
-    2. Score each paragraph by token overlap + phrase matching + heading proximity
-    3. Select top evidence
-    4. Apply confidence threshold
-    5. If confidence insufficient → "I couldn't find this information"
-
+    Produces structured natural-language answers for common legal questions.
     NEVER invents facts, legal conclusions, or generic assumptions.
     """
     query_tokens = _tokenize(question)
@@ -857,20 +850,85 @@ def _smart_offline_qa(document_text: str, question: str, document_type: str = ""
             "sources": [], "found_in_document": False, "confidence": "none",
         }
 
-    # Build paragraphs (split on blank lines or [Page N] markers)
+    question_lower = question.lower().strip()
+
+    # -------------------------------------------------------------------
+    # Topic-aware extraction for common legal question types
+    # -------------------------------------------------------------------
+    TOPIC_PATTERNS = {
+        "probation": {
+            "keywords": ["probation", "probationary", "trial period", "confirmation"],
+            "amount_re": re.compile(r"(\d+)\s*(month|months|week|weeks|day|days)", re.IGNORECASE),
+            "label": "Probation Period",
+        },
+        "notice": {
+            "keywords": ["notice period", "prior notice", "advance notice", "termination notice",
+                         "days\' notice", "days notice", "weeks notice", "month notice"],
+            "amount_re": re.compile(r"(\d+)\s*(month|months|week|weeks|day|days)", re.IGNORECASE),
+            "label": "Notice Period",
+        },
+        "salary": {
+            "keywords": ["salary", "remuneration", "compensation", "ctc", "gross salary",
+                         "cost to company", "per month", "per annum", "stipend", "wages"],
+            "amount_re": re.compile(
+                r"(?:\u20b9|Rs\.?|INR|USD|\$)\s*[\d,]+(?:\.\d{1,2})?(?:\s*(?:per\s*month|monthly|per\s*annum|annually|lakh|lakhs|crore))?",
+                re.IGNORECASE,
+            ),
+            "label": "Salary / Compensation",
+        },
+        "rent": {
+            "keywords": ["rent", "monthly rent", "rental amount", "lease amount"],
+            "amount_re": re.compile(
+                r"(?:\u20b9|Rs\.?|INR|USD|\$)\s*[\d,]+(?:\.\d{1,2})?(?:\s*(?:per\s*month|monthly))?",
+                re.IGNORECASE,
+            ),
+            "label": "Rent Amount",
+        },
+        "start_date": {
+            "keywords": ["commencement", "start date", "effective date", "agreement date",
+                         "date of joining", "joining date", "date of commencement",
+                         "from the date", "commence on", "when does", "agreement start"],
+            "amount_re": re.compile(
+                r"\b(?:January|February|March|April|May|June|July|August|September|October|November|December)"
+                r"\s+\d{1,2},?\s+\d{4}\b|\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b\d{4}-\d{2}-\d{2}\b",
+                re.IGNORECASE,
+            ),
+            "label": "Agreement / Commencement Date",
+        },
+        "termination": {
+            "keywords": ["termination", "terminate", "end of contract", "contract end", "expiry"],
+            "amount_re": None,
+            "label": "Termination",
+        },
+        "deposit": {
+            "keywords": ["deposit", "security deposit", "advance payment", "security amount"],
+            "amount_re": re.compile(
+                r"(?:\u20b9|Rs\.?|INR|USD|\$)\s*[\d,]+(?:\.\d{1,2})?",
+                re.IGNORECASE,
+            ),
+            "label": "Deposit",
+        },
+    }
+
+    matched_topic = None
+    for topic_key, topic_info in TOPIC_PATTERNS.items():
+        if any(kw in question_lower for kw in topic_info["keywords"]):
+            matched_topic = (topic_key, topic_info)
+            break
+
+    # -------------------------------------------------------------------
+    # Paragraph scoring
+    # -------------------------------------------------------------------
     raw_paras = re.split(r"\n\s*\n|\[Page \d+\]", document_text)
     paragraphs = [p.strip() for p in raw_paras if len(p.strip()) > 30]
 
-    # Score each paragraph
     scored = []
     for i, para in enumerate(paragraphs):
         para_lower = para.lower()
         para_tokens = Counter(_tokenize(para))
 
-        # Token overlap score
         overlap = sum(min(para_tokens.get(t, 0), 1) for t in query_tokens)
 
-        # Phrase match bonus: consecutive query tokens appearing together
         phrase_bonus = 0
         if len(query_tokens) >= 2:
             for j in range(len(query_tokens) - 1):
@@ -878,7 +936,13 @@ def _smart_offline_qa(document_text: str, question: str, document_type: str = ""
                 if phrase in para_lower:
                     phrase_bonus += 2
 
-        total_score = overlap + phrase_bonus
+        topic_bonus = 0
+        if matched_topic:
+            _, topic_info = matched_topic
+            if any(kw in para_lower for kw in topic_info["keywords"]):
+                topic_bonus += 3
+
+        total_score = overlap + phrase_bonus + topic_bonus
         if total_score > 0:
             scored.append((total_score, i, para))
 
@@ -890,9 +954,8 @@ def _smart_offline_qa(document_text: str, question: str, document_type: str = ""
             "sources": [], "found_in_document": False, "confidence": "none",
         }
 
-    # Confidence threshold: need score >= 2 to report confidently
     top_score = scored[0][0]
-    confidence = "high" if top_score >= 3 else "medium" if top_score >= 2 else "low"
+    confidence = "high" if top_score >= 4 else "medium" if top_score >= 2 else "low"
 
     if confidence == "low":
         return {
@@ -900,15 +963,52 @@ def _smart_offline_qa(document_text: str, question: str, document_type: str = ""
             "sources": [], "found_in_document": False, "confidence": "low",
         }
 
-    # Build answer from top matching paragraphs
-    top_paragraphs = [para for _, _, para in scored[:4]]
-    bullet_list = "\n".join([f"- {p[:200]}" for p in top_paragraphs])
-    answer = f"**Based on the uploaded document:**\n\n{bullet_list}"
+    # -------------------------------------------------------------------
+    # Build a structured natural-language answer
+    # -------------------------------------------------------------------
+    top_para = scored[0][2]
 
-    # Build sources — determine location
+    if matched_topic:
+        topic_key, topic_info = matched_topic
+        label = topic_info["label"]
+        amount_re = topic_info["amount_re"]
+
+        extracted_value = None
+        if amount_re:
+            for _, _, para in scored[:5]:
+                match = amount_re.search(para)
+                if match:
+                    extracted_value = match.group(0).strip()
+                    top_para = para
+                    break
+
+        if extracted_value:
+            # Find best context sentence
+            sentences = re.split(r"(?<=[.!?])\s+", top_para)
+            best_sentence = ""
+            for sent in sentences:
+                if extracted_value in sent or any(kw in sent.lower() for kw in topic_info["keywords"]):
+                    best_sentence = sent.strip()
+                    break
+            if not best_sentence:
+                best_sentence = top_para[:300].strip()
+
+            answer = (
+                f"Based on the uploaded document, the {label} is: {extracted_value}\n\n"
+                f"Relevant text: \"{best_sentence[:250]}\""
+            )
+        else:
+            context = top_para[:350].strip()
+            answer = (
+                f"The document contains the following information about {label}:\n\n"
+                f"\"{context}\""
+            )
+    else:
+        context = top_para[:400].strip()
+        answer = f"Based on the uploaded document:\n\n\"{context}\""
+
     sources = []
     for _, para_idx, para in scored[:3]:
-        # Find position in original text
         pos = document_text.find(para[:60])
         page = _extract_page_from_context(document_text, pos) if pos >= 0 else None
         source = {"excerpt": para[:150]}
@@ -925,7 +1025,6 @@ def _smart_offline_qa(document_text: str, question: str, document_type: str = ""
         "found_in_document": True,
         "confidence": confidence,
     }
-
 
 def _select_relevant_context(document_text: str, question: str, max_chars: int = 10000) -> str:
     """
@@ -1121,24 +1220,33 @@ def _local_compare_documents(text_a: str, text_b: str, name_a: str = "Document A
             "note": "Percentage figures differ between documents.",
         })
 
-    # Clause-level wording differences
+    # Clause-level wording differences — only pair lines that BOTH share the same topic keyword
+    # AND are meaningfully similar (similarity > 30%) to avoid false pairing of unrelated clauses
     important_headings = ["notice", "termination", "salary", "rent", "jurisdiction", "probation", "penalty", "arbitration"]
     checked_categories = set()
     for la in lines_a:
         la_lower = la.lower()
         for heading in important_headings:
             if heading in la_lower and heading not in checked_categories:
+                # Find best matching line in B for this same heading keyword
+                best_match = None
+                best_ratio = 0.0
                 for lb in lines_b:
                     lb_lower = lb.lower()
                     if heading in lb_lower and la != lb:
-                        diff_table.append({
-                            "category": f"Wording Difference ({heading.title()})",
-                            "document_a": la[:150],
-                            "document_b": lb[:150],
-                            "note": f"Text of '{heading}' section differs between documents.",
-                        })
-                        checked_categories.add(heading)
-                        break
+                        # Only pair if lines have some textual similarity (same topic context)
+                        ratio = difflib.SequenceMatcher(None, la_lower, lb_lower).ratio()
+                        if ratio > 0.25 and ratio > best_ratio:
+                            best_ratio = ratio
+                            best_match = lb
+                if best_match:
+                    diff_table.append({
+                        "category": f"Wording Difference ({heading.title()})",
+                        "document_a": la[:150],
+                        "document_b": best_match[:150],
+                        "note": f"Both documents contain '{heading}' clauses but with different wording.",
+                    })
+                    checked_categories.add(heading)
 
     n_added = len(added)
     n_removed = len(removed)

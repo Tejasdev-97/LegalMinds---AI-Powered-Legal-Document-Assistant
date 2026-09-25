@@ -1050,6 +1050,34 @@ def download_report(doc_id):
     )
 
 
+@app.route("/api/compare/pdf", methods=["POST"])
+def export_comparison_pdf_route():
+    data = request.json or {}
+    comparison = data.get("result") or {}
+    name_a = data.get("name_a") or "Document A"
+    name_b = data.get("name_b") or "Document B"
+
+    if not comparison:
+        return jsonify({"error": "No comparison data provided."}), 400
+
+    report_filename = f"comparison_report_{int(time.time())}.pdf"
+    output_path = str(REPORTS_FOLDER / report_filename)
+
+    try:
+        from services.pdf_service import generate_comparison_pdf
+        generate_comparison_pdf(comparison, name_a=name_a, name_b=name_b, output_path=output_path)
+    except Exception as e:
+        logger.error(f"Comparison PDF generation failed: {e}")
+        return jsonify({"error": "Could not generate comparison PDF report."}), 500
+
+    return send_file(
+        output_path,
+        as_attachment=True,
+        download_name=f"Comparison_Report_{name_a}_vs_{name_b}.pdf",
+        mimetype="application/pdf",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Error handlers
 # ---------------------------------------------------------------------------
